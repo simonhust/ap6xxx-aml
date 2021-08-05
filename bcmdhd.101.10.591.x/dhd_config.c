@@ -8,6 +8,7 @@
 #include <bcmsdbus.h>
 #if defined(HW_OOB) || defined(FORCE_WOWLAN)
 #include <bcmdefs.h>
+#include <bcmdevs_legacy.h>
 #include <bcmsdh.h>
 #include <sdio.h>
 #include <sbchipc.h>
@@ -105,6 +106,8 @@ const chip_name_map_t chip_name_map[] = {
 	{BCM43012_CHIP_ID,	2,	"bcm43013c1_ag",	""},
 	{BCM4345_CHIP_ID,	6,	"bcm43455c0_ag",	"ap6255"},
 	{BCM4345_CHIP_ID,	9,	"bcm43456c5_ag",	"ap6256"},
+	{BCM4354_CHIP_ID,	1,	"bcm4354a1_ag",		""},
+	{BCM4354_CHIP_ID,	2,	"bcm4356a2_ag",		"ap6356"},
 	{BCM4359_CHIP_ID,	9,	"bcm4359c0_ag",		"ap6398s"},
 	{BCM43752_CHIP_ID,	2,	"bcm43752a2_ag",	"ap6275s"},
 #endif
@@ -248,7 +251,7 @@ dhd_conf_extsae_chip(dhd_pub_t *dhd)
 {
 	uint chip = dhd->conf->chip;
 
-	if (chip == BCM43569_CHIP_ID) {
+	if (chip == BCM43569_CHIP_ID || chip == BCM4354_CHIP_ID) {
 		return false;
 	}
 
