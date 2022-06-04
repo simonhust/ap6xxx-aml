@@ -255,6 +255,12 @@ ifeq ($(CONFIG_BCMDHD),m)
 EXTRA_LDFLAGS += --strip-debug
 endif
 
+# aarch64-none-elf-gcc doesn't set predefined macros
+DHDCFLAGS += -D__linux=1 -D__linux__=1 -D__gnu_linux__=1 -Dlinux=1
+
+# driver doesn't work with WL_STATIC_IF
+DHDCFLAGS := $(filter-out -DWL_STATIC_IF,$(DHDCFLAGS))
+
 ARCH ?= arm64
 CROSS_COMPILE ?=aarch64-linux-gnu-
 KDIR ?=../../../../../../common
@@ -274,6 +280,7 @@ clean:
 bcmdhd_sdio:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) CONFIG_DHD_USE_STATIC_BUF=y CONFIG_BCMDHD_SDIO=y modules
 	$(CROSS_COMPILE)strip --strip-unneeded ${OUT_DIR}/$(M)/dhd.ko
+	mv dhd.ko dhd_sdio.ko
 
 bcmdhd_usb:
 	$(MAKE) -C $(KDIR) M=$(PWD) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) modules CONFIG_BCMDHD_USB=y
