@@ -255,6 +255,11 @@ ifeq ($(CONFIG_BCMDHD),m)
 EXTRA_LDFLAGS += --strip-debug
 endif
 
+ifeq ($(CONFIG_BCMDHD_SDIO),y)
+	DHDCFLAGS += -DDHD_FW_NAME="\"/usr/lib/firmware/brcm/\""
+	DHDCFLAGS += -DDHD_NVRAM_NAME="\"/usr/lib/firmware/brcm/\""
+endif
+
 # aarch64-none-elf-gcc doesn't set predefined macros
 DHDCFLAGS += -D__linux=1 -D__linux__=1 -D__gnu_linux__=1 -Dlinux=1
 
