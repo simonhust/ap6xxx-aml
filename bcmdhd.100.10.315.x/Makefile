@@ -251,7 +251,7 @@ clean:
 bcmdhd_sdio:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) CONFIG_DHD_USE_STATIC_BUF=y CONFIG_BCMDHD_SDIO=y modules
 	$(CROSS_COMPILE)strip --strip-unneeded ${OUT_DIR}/$(M)/dhd.ko
-	mv dhd.ko dhd_sdio.ko
+	mv dhd.ko dhd_sdio_315.ko
 
 bcmdhd_usb:
 	$(MAKE) -C $(KDIR) M=$(PWD) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) modules CONFIG_BCMDHD_USB=y

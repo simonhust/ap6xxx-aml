@@ -557,7 +557,7 @@ modules_install:
 bcmdhd_sdio:
 	$(warning "building BCMDHD_SDIO..........")
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) CONFIG_DHD_USE_STATIC_BUF=y modules
-	mv dhd.ko dhd_sdio.ko
+	mv dhd.ko dhd_sdio_591.ko
 
 bcmdhd_pcie:
 	$(warning "building BCMDHD_PCIE..........")
