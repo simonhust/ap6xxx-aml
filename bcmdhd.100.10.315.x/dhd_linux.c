@@ -8105,14 +8105,17 @@ static int
 dhd_init_logstrs_array(osl_t *osh, dhd_event_log_t *temp)
 {
 	struct file *filep = NULL;
-	struct kstat stat;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t fs;
+#endif
 	char *raw_fmts =  NULL;
 	int logstrs_size = 0;
 	int error = 0;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	filep = filp_open(logstrs_path, O_RDONLY, 0);
 
@@ -8120,12 +8123,8 @@ dhd_init_logstrs_array(osl_t *osh, dhd_event_log_t *temp)
 		DHD_ERROR_NO_HW4(("%s: Failed to open the file %s \n", __FUNCTION__, logstrs_path));
 		goto fail;
 	}
-	error = vfs_stat(logstrs_path, &stat);
-	if (error) {
-		DHD_ERROR_NO_HW4(("%s: Failed to stat file %s \n", __FUNCTION__, logstrs_path));
-		goto fail;
-	}
-	logstrs_size = (int) stat.size;
+
+	logstrs_size = i_size_read(file_inode(filep));
 
 	if (logstrs_size == 0) {
 		DHD_ERROR(("%s: return as logstrs_size is 0\n", __FUNCTION__));
@@ -8146,7 +8145,9 @@ dhd_init_logstrs_array(osl_t *osh, dhd_event_log_t *temp)
 	if (dhd_parse_logstrs_file(osh, raw_fmts, logstrs_size, temp)
 				== BCME_OK) {
 		filp_close(filep, NULL);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(fs);
+#endif
 		return BCME_OK;
 	}
 
@@ -8160,7 +8161,9 @@ fail1:
 	if (!IS_ERR(filep))
 		filp_close(filep, NULL);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(fs);
+#endif
 	temp->fmts = NULL;
 	return BCME_ERROR;
 }
@@ -8170,7 +8173,9 @@ dhd_read_map(osl_t *osh, char *fname, uint32 *ramstart, uint32 *rodata_start,
 		uint32 *rodata_end)
 {
 	struct file *filep = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t fs;
+#endif
 	int err = BCME_ERROR;
 
 	if (fname == NULL) {
@@ -8178,8 +8183,10 @@ dhd_read_map(osl_t *osh, char *fname, uint32 *ramstart, uint32 *rodata_start,
 		return BCME_ERROR;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	filep = filp_open(fname, O_RDONLY, 0);
 	if (IS_ERR(filep)) {
@@ -8195,7 +8202,9 @@ fail:
 	if (!IS_ERR(filep))
 		filp_close(filep, NULL);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(fs);
+#endif
 
 	return err;
 }
@@ -8204,7 +8213,9 @@ static int
 dhd_init_static_strs_array(osl_t *osh, dhd_event_log_t *temp, char *str_file, char *map_file)
 {
 	struct file *filep = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t fs;
+#endif
 	char *raw_fmts =  NULL;
 	uint32 logstrs_size = 0;
 	int error = 0;
@@ -8227,8 +8238,10 @@ dhd_init_static_strs_array(osl_t *osh, dhd_event_log_t *temp, char *str_file, ch
 	DHD_ERROR(("ramstart: 0x%x, rodata_start: 0x%x, rodata_end:0x%x\n",
 		ramstart, rodata_start, rodata_end));
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	filep = filp_open(str_file, O_RDONLY, 0);
 	if (IS_ERR(filep)) {
@@ -8280,7 +8293,9 @@ dhd_init_static_strs_array(osl_t *osh, dhd_event_log_t *temp, char *str_file, ch
 	}
 
 	filp_close(filep, NULL);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(fs);
+#endif
 
 	return BCME_OK;
 
@@ -8294,7 +8309,9 @@ fail1:
 	if (!IS_ERR(filep))
 		filp_close(filep, NULL);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(fs);
+#endif
 
 	if (strstr(str_file, ram_file_str) != NULL) {
 		temp->raw_sstr = NULL;
@@ -15555,11 +15572,15 @@ int write_file(const char * file_name, uint32 flags, uint8 *buf, int size)
 {
 	int ret = 0;
 	struct file *fp = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t old_fs;
+#endif
 	loff_t pos = 0;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* change to KERNEL_DS address limit */
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	/* open file to write */
 	fp = filp_open(file_name, flags, 0664);
@@ -15588,8 +15609,10 @@ exit:
 	if (!IS_ERR(fp))
 		filp_close(fp, current->files);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* restore previous address limit */
 	set_fs(old_fs);
+#endif
 
 	return ret;
 }
@@ -17637,7 +17660,7 @@ dhd_nla_put_sssr_dump_len(void *ndev, uint32 *arr_len)
 #endif /* DHD_SSSR_DUMP */
 
 uint32
-dhd_get_time_str_len()
+dhd_get_time_str_len(void)
 {
 	char *ts = NULL, time_str[128];
 
@@ -18362,14 +18385,16 @@ do_dhd_log_dump(dhd_pub_t *dhdp, log_dump_type_t *type)
 {
 	int ret = 0, i = 0;
 	struct file *fp = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t old_fs;
+#endif
 	loff_t pos = 0;
 	char dump_path[128];
 	uint32 file_mode;
 	unsigned long flags = 0;
 	size_t log_size = 0;
 	size_t fspace_remain = 0;
-	struct kstat stat;
+	size_t stat_size;
 	char time_str[128];
 	unsigned int len = 0;
 	log_dump_section_hdr_t sec_hdr;
@@ -18388,9 +18413,11 @@ do_dhd_log_dump(dhd_pub_t *dhdp, log_dump_type_t *type)
 	if ((ret = dhd_log_flush(dhdp, type)) < 0) {
 		goto exit1;
 	}
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* change to KERNEL_DS address limit */
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	dhd_get_debug_dump_file_name(NULL, dhdp, dump_path, sizeof(dump_path));
 
@@ -18436,15 +18463,11 @@ do_dhd_log_dump(dhd_pub_t *dhdp, log_dump_type_t *type)
 #endif /* CONFIG_X86 && OEM_ANDROID */
 	}
 
-	ret = vfs_stat(dump_path, &stat);
-	if (ret < 0) {
-		DHD_ERROR(("file stat error, err = %d\n", ret));
-		goto exit2;
-	}
+	stat_size = i_size_read(file_inode(fp));
 
 	/* if some one else has changed the file */
 	if (dhdp->last_file_posn != 0 &&
-			stat.size < dhdp->last_file_posn) {
+			stat_size < dhdp->last_file_posn) {
 		dhdp->last_file_posn = 0;
 	}
 
@@ -18582,7 +18605,9 @@ exit2:
 		DHD_ERROR(("%s: Finished writing log dump to file - '%s' \n",
 				__FUNCTION__, dump_path));
 	}
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	set_fs(old_fs);
+#endif
 exit1:
 	if (type) {
 		MFREE(dhdp->osh, type, sizeof(*type));
@@ -20020,12 +20045,16 @@ int
 dhd_write_file(const char *filepath, char *buf, int buf_len)
 {
 	struct file *fp = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t old_fs;
+#endif
 	int ret = 0;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* change to KERNEL_DS address limit */
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	/* File is always created. */
 	fp = filp_open(filepath, O_RDWR | O_CREAT, 0664);
@@ -20047,8 +20076,10 @@ dhd_write_file(const char *filepath, char *buf, int buf_len)
 		filp_close(fp, NULL);
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* restore previous address limit */
 	set_fs(old_fs);
+#endif
 
 	return ret;
 }
@@ -20057,16 +20088,22 @@ int
 dhd_read_file(const char *filepath, char *buf, int buf_len)
 {
 	struct file *fp = NULL;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t old_fs;
+#endif
 	int ret;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* change to KERNEL_DS address limit */
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
+#endif
 
 	fp = filp_open(filepath, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 		set_fs(old_fs);
+#endif
 		DHD_ERROR(("%s: File %s doesn't exist\n", __FUNCTION__, filepath));
 		return BCME_ERROR;
 	}
@@ -20074,8 +20111,10 @@ dhd_read_file(const char *filepath, char *buf, int buf_len)
 	ret = compat_kernel_read(fp, 0, buf, buf_len);
 	filp_close(fp, NULL);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	/* restore previous address limit */
 	set_fs(old_fs);
+#endif
 
 	/* Return the number of bytes read */
 	if (ret > 0) {

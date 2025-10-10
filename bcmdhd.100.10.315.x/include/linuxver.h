@@ -382,6 +382,12 @@ extern void timer_cb_compat(struct timer_list *tl);
 
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)
+#define rtc_time_to_tm(a, b) rtc_time64_to_tm(a, b)
+#else
+#define rtc_time_to_tm(a, b) rtc_time_to_tm(a, b)
+#endif /* LINUX_VER >= 3.19.0 */
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 3, 43))
 
 #define dev_kfree_skb_any(a)		dev_kfree_skb(a)
@@ -635,7 +641,9 @@ static inline bool binary_sema_up(tsk_ctl_t *tsk)
 	return sem_up;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0))
+#define SMP_RD_BARRIER_DEPENDS(x)
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0))
 #define SMP_RD_BARRIER_DEPENDS(x) smp_read_barrier_depends(x)
 #else
 #define SMP_RD_BARRIER_DEPENDS(x) smp_rmb(x)
@@ -880,5 +888,8 @@ int kernel_read_compat(struct file *file, loff_t offset, char *addr, unsigned lo
 #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0) */
 #define kernel_read_compat(file, offset, addr, count) kernel_read(file, offset, addr, count)
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0) */
+
+#define CFG80211_BKPORT_MLO
+MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 
 #endif /* _linuxver_h_ */
