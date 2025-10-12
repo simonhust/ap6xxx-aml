@@ -1586,6 +1586,53 @@ sdioh_sdmmc_card_regwrite(sdioh_info_t *sd, int func, uint32 regaddr, int regsiz
 }
 #endif /* NOTUSED */
 
+#if defined(ENABLE_INSMOD_NO_FW_LOAD)
+static int sdio_sw_reset(sdioh_info_t *sd)
+{
+	struct mmc_card *card = sd->func[0]->card;
+	int err = 0;
+
+#if defined(MMC_SW_RESET) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+	/* MMC_SW_RESET */
+	printf("%s: call mmc_sw_reset\n", __FUNCTION__);
+	sdio_claim_host(sd->func[0]);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0)
+	err = mmc_sw_reset(card);
+#else
+	err = mmc_sw_reset(card->host);
+#endif
+	sdio_release_host(sd->func[0]);
+#elif defined(MMC_HW_RESET) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+	/* MMC_HW_RESET */
+	printf("%s: call mmc_hw_reset\n", __FUNCTION__);
+	sdio_claim_host(sd->func[0]);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	while (atomic_read(&card->sdio_funcs_probed) > 1) {
+		atomic_dec(&card->sdio_funcs_probed);
+	}
+#endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
+	err = mmc_hw_reset(card);
+#else
+	err = mmc_hw_reset(card->host);
+#endif
+	sdio_release_host(sd->func[0]);
+#elif defined(BUS_POWER_RESTORE) && \
+LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+	printf("%s: call mmc_power_restore_host\n", __FUNCTION__);
+	mmc_power_restore_host(card->host);
+#else
+	/* sdio_reset_comm */
+	err = sdio_reset_comm(card);
+#endif
+
+	if (err)
+		sd_err(("%s Failed, error = %d\n", __FUNCTION__, err));
+
+	return err;
+}
+#endif
+
 int
 sdioh_start(sdioh_info_t *sd, int stage)
 {
@@ -1612,7 +1659,7 @@ sdioh_start(sdioh_info_t *sd, int stage)
 		   patch for it
 		*/
 #if defined(ENABLE_INSMOD_NO_FW_LOAD) && !defined(BUS_POWER_RESTORE)
-		if ((ret = sdio_reset_comm(sd->func[0]->card))) {
+		if ((ret = sdio_sw_reset(sd))) {
 			sd_err(("%s Failed, error = %d\n", __FUNCTION__, ret));
 			return ret;
 		} else
