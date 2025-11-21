@@ -140,7 +140,7 @@ const chip_name_map_t chip_name_map[] = {
 	{BCM43751_CHIP_ID,	1,	DONT_CARE,	"bcm43751a1_pcie_ag",	""},
 	{BCM43751_CHIP_ID,	2,	DONT_CARE,	"bcm43751a2_pcie_ag",	""},
 	{BCM43752_CHIP_ID,	1,	DONT_CARE,	"bcm43752a1_pcie_ag",	""},
-	{BCM43752_CHIP_ID,	2,	DONT_CARE,	"bcm43752a2_pcie_ag",	""},
+	{BCM43752_CHIP_ID,	2,	DONT_CARE,	"bcm43752a2_pcie_ag",	"ap6275p"},
 	{BCM4375_CHIP_ID,	5,	DONT_CARE,	"bcm4375b4_pcie_ag",	"ap6275hh3"},
 #endif
 #ifdef BCMDBUS
@@ -182,6 +182,8 @@ const module_name_map_t module_name_map[] = {
 		"ap6398sv3",	"bcm4359c51a2_ag",	dhd_conf_compat_vht},
 #endif
 #ifdef BCMPCIE
+	{BCM43751_D11AX_ID,	BCM43752_CHIP_ID,	2,	0x179F, 0x003C,
+		"ap6275p",		"bcm43752a2_pcie_ag",	dhd_conf_compat_vht},
 	{BCM43751_D11AX_ID,	BCM43752_CHIP_ID,	2,	0x179F, 0x003C,
 		"ap6398p2",		"bcm4359c51a2_pcie_ag",	dhd_conf_compat_vht},
 	{BCM43751_D11AX_ID,	BCM43752_CHIP_ID,	2,	0x17F9, 0x003C,
